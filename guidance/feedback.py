@@ -166,7 +166,7 @@ class FeedbackGenerator:
             if angle_type in IDEAL_ANGLES:
                 min_val, max_val = IDEAL_ANGLES[angle_type]
                 status = "✓" if min_val <= angle_value <= max_val else "✗"
-                summary += f"{angle_type.replace('_', ' ').title()}: {angle_value:.1f}° {status} (Ideal: {min_val}°-{max_val}°)\n"
+                summary += f"{angle_type.replace('_', ' ').title()}: {angle_value:.1f}deg {status} (Ideal: {min_val}deg-{max_val}deg)\n"
         
         summary += "\n"
         

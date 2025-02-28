@@ -71,13 +71,7 @@ class Visualizer:
         
         # Add the angle text
         cv2.putText(
-            image, 
-            f"{angle.value:.1f}°", 
-            text_position, 
-            FONT, 
-            0.6, 
-            COLORS["text_color"], 
-            2
+         image, f"{angle.value:.1f} deg", text_position, FONT, 0.6, COLORS["text_color"], 2
         )
     
     def draw_pose(self, frame: np.ndarray, pose_data: PoseData) -> np.ndarray:
@@ -133,7 +127,7 @@ class Visualizer:
         # Add ideal angle ranges as reference
         y_offset = 30
         for i, (angle_type, (min_val, max_val)) in enumerate(IDEAL_ANGLES.items()):
-            text = f"{angle_type.replace('_', ' ').title()}: {min_val}°-{max_val}°"
+            text = f"{angle_type.replace('_', ' ').title()}: {min_val}deg-{max_val}deg"
             cv2.putText(
                 frame, 
                 text, 

@@ -449,7 +449,7 @@ class VisualCues:
                 # Draw angle value
                 cv2.putText(
                     result_frame, 
-                    f"{angle_type}: {angle.value:.1f}°", 
+                    f"{angle_type}: {angle.value:.1f}deg", 
                     (text_x, text_y), 
                     FONT, 
                     0.8, 

@@ -206,3 +206,28 @@ DEFAULT_MEASUREMENTS = {
     "torso_length": 60.0,
     "shoulder_width": 45.0
 }
+
+KOPS_SETTINGS = {
+    "ideal_range": (-0.5, 0.5),  # cm forward/backward from pedal spindle
+    "tolerance": 1.0,  # cm
+    "visualization_color": (255, 0, 255)  # Magenta
+}
+
+SADDLE_SETBACK_SETTINGS = {
+    "ideal_range_ratio": (5, 8),  # Percentage of saddle height
+    "tolerance": 1.0,  # cm
+    "visualization_color": (255, 165, 0)  # Orange
+}
+
+CLEAT_POSITION_SETTINGS = {
+    "ideal_position_percent": (60, 70),  # Percentage from heel
+    "tolerance": 2.0,  # percentage points
+    "visualization_color": (0, 128, 255)  # Light blue
+}
+
+STACK_REACH_SETTINGS = {
+    "visualization_colors": {
+        "stack": (0, 255, 0),  # Green
+        "reach": (255, 0, 0)   # Red
+    }
+}

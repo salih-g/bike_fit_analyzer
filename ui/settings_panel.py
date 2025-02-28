@@ -64,6 +64,9 @@ class SettingsPanel(QWidget):
         # Set fixed width for the panel
         self.setMinimumWidth(300)
         self.setMaximumWidth(400)
+        self.advanced_tab = QWidget()
+        self.tabs.addTab(self.advanced_tab, "Advanced")
+        self.setup_advanced_tab()
     
     def setup_camera_tab(self):
         """Setup the camera settings tab."""
@@ -392,3 +395,74 @@ class SettingsPanel(QWidget):
         self._analysis_active = active
         self.start_analysis_btn.setEnabled(not active)
         self.stop_analysis_btn.setEnabled(active)
+
+    def setup_advanced_tab(self):
+        """Setup the advanced measurements tab."""
+        layout = QVBoxLayout(self.advanced_tab)
+        
+        # KOPS section
+        kops_group = QGroupBox("Knee Over Pedal Spindle (KOPS)")
+        kops_layout = QVBoxLayout()
+        
+        self.enable_kops_check = QCheckBox("Enable KOPS Analysis")
+        self.enable_kops_check.setChecked(True)
+        
+        self.kops_tolerance_spin = QDoubleSpinBox()
+        self.kops_tolerance_spin.setRange(0.1, 5.0)
+        self.kops_tolerance_spin.setValue(1.0)
+        self.kops_tolerance_spin.setSuffix(" cm")
+        
+        kops_tolerance_layout = QHBoxLayout()
+        kops_tolerance_layout.addWidget(QLabel("Tolerance:"))
+        kops_tolerance_layout.addWidget(self.kops_tolerance_spin)
+        
+        kops_layout.addWidget(self.enable_kops_check)
+        kops_layout.addLayout(kops_tolerance_layout)
+        kops_group.setLayout(kops_layout)
+        layout.addWidget(kops_group)
+        
+        # Saddle setback section
+        saddle_group = QGroupBox("Saddle Setback")
+        saddle_layout = QVBoxLayout()
+        
+        self.enable_setback_check = QCheckBox("Enable Setback Analysis")
+        self.enable_setback_check.setChecked(True)
+        
+        saddle_layout.addWidget(self.enable_setback_check)
+        saddle_group.setLayout(saddle_layout)
+        layout.addWidget(saddle_group)
+        
+        # Cleat positioning section
+        cleat_group = QGroupBox("Cleat Positioning")
+        cleat_layout = QVBoxLayout()
+        
+        self.enable_cleat_check = QCheckBox("Enable Cleat Analysis")
+        self.enable_cleat_check.setChecked(True)
+        
+        self.cleat_position_spin = QSpinBox()
+        self.cleat_position_spin.setRange(50, 80)
+        self.cleat_position_spin.setValue(65)
+        self.cleat_position_spin.setSuffix("%")
+        
+        cleat_position_layout = QHBoxLayout()
+        cleat_position_layout.addWidget(QLabel("Ideal Position:"))
+        cleat_position_layout.addWidget(self.cleat_position_spin)
+        
+        cleat_layout.addWidget(self.enable_cleat_check)
+        cleat_layout.addLayout(cleat_position_layout)
+        cleat_group.setLayout(cleat_layout)
+        layout.addWidget(cleat_group)
+        
+        # Stack and reach section
+        geometry_group = QGroupBox("Stack and Reach")
+        geometry_layout = QVBoxLayout()
+        
+        self.enable_geometry_check = QCheckBox("Enable Stack/Reach Analysis")
+        self.enable_geometry_check.setChecked(True)
+        
+        geometry_layout.addWidget(self.enable_geometry_check)
+        geometry_group.setLayout(geometry_layout)
+        layout.addWidget(geometry_group)
+        
+        # Add stretch to push everything to the top
+        layout.addStretch()
