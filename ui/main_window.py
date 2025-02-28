@@ -20,6 +20,7 @@ from bike_fit_analyzer.core.analyzer import BikeFitAnalyzer
 from bike_fit_analyzer.utils.camera import CameraManager
 from bike_fit_analyzer.wizard.setup_wizard import SetupWizard
 from bike_fit_analyzer.models.user_profile import UserProfile
+from bike_fit_analyzer.config.settings_manager import settings_manager
 
 
 class MainWindow(QMainWindow):
@@ -36,16 +37,19 @@ class MainWindow(QMainWindow):
         
         # Camera and video processing variables
         self.camera = None
-        self.camera_id = 0
+        self.camera_id = settings_manager.get("camera_id", 0)
         self.timer = QTimer()
         self.timer.timeout.connect(self.update_frame)
-        self.mirror_enabled = True
+        self.mirror_enabled = settings_manager.get("mirror_enabled", True)
         
         # Setup the UI
         self.init_ui()
         
         # Connect signals and slots
         self.connect_signals()
+        
+        # Register as settings observer
+        settings_manager.add_observer(self._on_settings_changed)
     
     def init_ui(self):
         """Initialize the user interface."""
@@ -276,7 +280,8 @@ class MainWindow(QMainWindow):
         
         # Process the frame if analysis is active
         if self.settings_panel.is_analysis_active():
-            frame = self.analyzer.process_frame(frame, self.mirror_enabled)
+            # Use the analyzer with all current settings
+            frame = self.analyzer.process_frame(frame)
         elif self.mirror_enabled:
             frame = cv2.flip(frame, 1)
         
@@ -381,3 +386,13 @@ class MainWindow(QMainWindow):
         # Accept the close event
         event.accept()
 
+    def _on_settings_changed(self, key, value):
+        """Handle settings changes."""
+        if key == "camera_id" and self.camera is not None:
+            # Camera ID changed while camera is running
+            self.stop_camera()
+            self.start_camera()
+        elif key == "mirror_enabled":
+            # Update mirror button state
+            self.mirror_enabled = value
+            self.settings_panel.update_mirror_button(value)

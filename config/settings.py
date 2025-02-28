@@ -1,4 +1,3 @@
-# bike_fit_analyzer/config/settings.py
 """
 Configuration settings for the Bike Fit Analyzer application.
 """
