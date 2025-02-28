@@ -1,0 +1,13 @@
+# Core dependencies
+opencv-python>=4.5.0       # For camera access and image processing
+mediapipe>=0.8.10          # For pose detection and tracking
+numpy>=1.20.0              # For numerical computations
+
+# Optional dependencies
+matplotlib>=3.4.0          # For additional visualization options (optional)
+pillow>=8.2.0              # For image handling (optional)
+
+# Development dependencies
+pytest>=6.2.5              # For testing
+pylint>=2.8.3              # For code quality
+black>=21.5b2              # For code formatting
