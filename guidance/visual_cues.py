@@ -344,48 +344,15 @@ class VisualCues:
         
         return result_frame
     
-    def apply_all_guidance_cues(self, frame: np.ndarray, pose_data: PoseData, 
-                              adjustments: List[AdjustmentRecommendation],
-                              show_arrows: bool = True,
-                              show_target_pose: bool = True,
-                              show_text: bool = True) -> np.ndarray:
-        """
-        Apply all guidance cues to the frame.
-        
-        Args:
-            frame: Input frame
-            pose_data: Processed pose data
-            adjustments: List of adjustment recommendations
-            show_arrows: Whether to show adjustment arrows
-            show_target_pose: Whether to show target pose overlay
-            show_text: Whether to show guidance text
-            
-        Returns:
-            Frame with all guidance cues
-        """
-        result_frame = frame.copy()
-        
-        # Apply each enabled cue type
-        if show_target_pose:
-            result_frame = self.draw_target_pose_overlay(result_frame, pose_data)
-        
-        if show_arrows:
-            result_frame = self.draw_adjustment_arrows(result_frame, pose_data, adjustments)
-        
-        if show_text:
-            result_frame = self.draw_guidance_text(result_frame, pose_data, adjustments)
-        
-        return result_frame
-    
     def enhance_frame_visualization(self, frame: np.ndarray, pose_data: PoseData,
-                                  view_mode: str = "normal") -> np.ndarray:
+                                view_mode: str = "normal_view") -> np.ndarray:
         """
         Enhance the frame visualization based on the selected view mode.
         
         Args:
             frame: Input frame
             pose_data: Processed pose data
-            view_mode: Visualization mode (normal, skeleton, angles, guidance)
+            view_mode: Visualization mode (normal_view, skeleton_only, angles_only, guidance_view, comparison_view)
             
         Returns:
             Enhanced visualization frame
@@ -457,16 +424,32 @@ class VisualCues:
                     2
                 )
         
+        elif view_mode == "guidance_view" and hasattr(self, 'adjustments') and self.adjustments:
+            # Enhanced visualization with visual guidance
+            # This would use the apply_all_guidance_cues method for comprehensive guidance
+            result_frame = self.apply_all_guidance_cues(
+                result_frame,
+                pose_data,
+                self.adjustments,
+                show_arrows=True,
+                show_target_pose=True,
+                show_text=True
+            )
+        
         elif view_mode == "comparison_view":
             # Split the frame into before/after sections
-            # For now, just draw a dividing line down the middle
             h, w = result_frame.shape[:2]
+            
+            # Create a composite image with current pose on left and ideal pose on right
+            comparison_frame = np.zeros_like(result_frame)
+            
+            # Draw dividing line
             cv2.line(result_frame, (w//2, 0), (w//2, h), (0, 255, 255), 2)
             
             # Add before/after labels
             cv2.putText(
                 result_frame, 
-                "Before", 
+                "Current", 
                 (w//4, 30), 
                 FONT, 
                 1.0, 
@@ -476,13 +459,37 @@ class VisualCues:
             
             cv2.putText(
                 result_frame, 
-                "After (Target)", 
+                "Ideal Target", 
                 (3*w//4, 30), 
                 FONT, 
                 1.0, 
                 (255, 255, 255), 
                 2
             )
+            
+            # On the right side, draw an idealized pose based on current pose with ideal angles
+            if pose_data and hasattr(self, 'pose_data'):
+                # Draw current pose on left side
+                cv2.putText(
+                    result_frame, 
+                    "Current Pose", 
+                    (w//4, h-30), 
+                    FONT, 
+                    0.8, 
+                    (255, 255, 255), 
+                    2
+                )
+                
+                # Add note about ideal pose
+                cv2.putText(
+                    result_frame, 
+                    "Target Ideal Pose", 
+                    (3*w//4, h-30), 
+                    FONT, 
+                    0.8, 
+                    (255, 255, 255), 
+                    2
+                )
         
-        # For normal and guidance modes, the frame is returned as is
+        # For normal view, the frame is returned as is or with standard visualizations
         return result_frame

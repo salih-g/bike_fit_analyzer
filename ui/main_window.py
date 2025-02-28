@@ -280,13 +280,23 @@ class MainWindow(QMainWindow):
         
         # Process the frame if analysis is active
         if self.settings_panel.is_analysis_active():
-            # Use the analyzer with all current settings
-            frame = self.analyzer.process_frame(frame)
+            try:
+                processed_frame, pose_data, adjustments = self.analyzer.process_frame(frame, self.mirror_enabled)
+                # Update the visualization panel with the new frame and data
+                self.visualization_panel.update_frame(processed_frame, pose_data, adjustments)
+            except Exception as e:
+                print(f"Error processing frame: {e}")
+                # If there's an error, just show the mirrored frame
+                if self.mirror_enabled:
+                    frame = cv2.flip(frame, 1)
+                self.visualization_panel.update_frame(frame)
         elif self.mirror_enabled:
+            # Just mirror the frame without analysis
             frame = cv2.flip(frame, 1)
-        
-        # Update the visualization panel with the new frame
-        self.visualization_panel.update_frame(frame)
+            self.visualization_panel.update_frame(frame)
+        else:
+            # Just show the raw frame
+            self.visualization_panel.update_frame(frame)
     
     @pyqtSlot()
     def start_analysis(self):

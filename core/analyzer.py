@@ -2,13 +2,13 @@
 Core analyzer functionality for the Bike Fit Analyzer.
 """
 import cv2
-from typing import Optional
+from typing import Optional, Tuple
 
 from bike_fit_analyzer.core.pose_detector import PoseDetector
 from bike_fit_analyzer.utils.camera import CameraManager
 from bike_fit_analyzer.utils.visualization import Visualizer
 from bike_fit_analyzer.ui.renderer import UIRenderer
-from bike_fit_analyzer.config.settings_manager import settings_manager
+from bike_fit_analyzer.guidance.bike_adjustments import BikeAdjustmentAnalyzer
 
 
 class BikeFitAnalyzer:
@@ -20,94 +20,42 @@ class BikeFitAnalyzer:
         self.pose_detector = PoseDetector()
         self.visualizer = Visualizer()
         self.ui_renderer = UIRenderer()
-        
-        # Register as an observer for settings changes
-        settings_manager.add_observer(self._on_settings_changed)
+        self.bike_adjustment_analyzer = BikeAdjustmentAnalyzer()
     
-    def _on_settings_changed(self, key, value):
-        """Handle settings changes."""
-        # Update pose detector parameters when they change
-        if key == "pose_model_complexity":
-            self.pose_detector.update_model_complexity(value)
-        elif key == "min_detection_confidence" or key == "min_tracking_confidence":
-            self.pose_detector.update_confidence_thresholds(
-                settings_manager.get("min_detection_confidence"),
-                settings_manager.get("min_tracking_confidence")
-            )
-    
-    def process_frame(self, frame, mirror=None):
+    def process_frame(self, frame, mirror=False, view_mode="Normal View", show_angles=True, show_guidance=True):
         """
         Process a single frame.
         
         Args:
             frame: Input frame
-            mirror: Whether to mirror the frame (overrides settings if provided)
+            mirror: Whether to mirror the frame
+            view_mode: Visualization view mode
+            show_angles: Whether to show angles
+            show_guidance: Whether to show guidance
             
         Returns:
-            Processed frame
+            Tuple of (processed frame, pose data, adjustments)
         """
-        # Use settings for mirror if not explicitly provided
-        if mirror is None:
-            mirror = settings_manager.get("mirror_enabled")
-        
         # Mirror the image if requested
         if mirror:
             frame = cv2.flip(frame, 1)
         
-        # Get visualization settings
-        show_skeleton = settings_manager.get("show_skeleton")
-        show_landmarks = settings_manager.get("show_landmarks")
-        show_angles = settings_manager.get("show_angles")
-        show_guidance = settings_manager.get("show_guidance")
-        view_mode = settings_manager.get("view_mode")
-        angles = settings_manager.get("angles")
-        angles_enabled = settings_manager.get("angles_enabled")
-        
-        # Detect pose with current settings
+        # Detect pose
         processed_frame, pose_data = self.pose_detector.detect_pose(frame)
         
-        # Filter out disabled angles if we have pose data
-        if pose_data:
-            filtered_angles = {}
-            for angle_name, angle in pose_data.angles.items():
-                if angle_name in angles_enabled and angles_enabled[angle_name]:
-                    # Update the ideal range based on current settings
-                    if angle_name in angles:
-                        angle.ideal_range = angles[angle_name]
-                    filtered_angles[angle_name] = angle
-            
-            pose_data.angles = filtered_angles
-        
-        # Generate adjustments if we have pose data
-        adjustments = []
+        # Generate adjustments if pose detected and guidance enabled
+        adjustments = None
         if pose_data and show_guidance:
-            from bike_fit_analyzer.guidance.bike_adjustments import BikeAdjustmentAnalyzer
-            adjuster = BikeAdjustmentAnalyzer()
-            adjustments = adjuster.analyze_pose(pose_data)
+            adjustments = self.bike_adjustment_analyzer.analyze_pose(pose_data)
         
-        # Apply visualization based on current settings
-        show_arrows = settings_manager.get("show_arrows")
-        show_color_coding = settings_manager.get("show_color_coding")
-        show_text_cues = settings_manager.get("show_text_cues")
-        show_target_pose = settings_manager.get("show_target_pose")
+        # Visualize the frame (moved this to the visualization panel)
+        # output_frame = self.visualizer.visualize_frame(
+        #     processed_frame, 
+        #     pose_data, 
+        #     show_angles=show_angles
+        # )
         
-        # Visualize the frame
-        output_frame = self.visualizer.visualize_frame(
-            processed_frame, 
-            pose_data, 
-            adjustments,
-            show_skeleton=show_skeleton,
-            show_landmarks=show_landmarks,
-            show_angles=show_angles,
-            show_guidance=show_guidance,
-            show_arrows=show_arrows,
-            show_color_coding=show_color_coding,
-            show_text_cues=show_text_cues,
-            show_target_pose=show_target_pose,
-            view_mode=view_mode
-        )
-        
-        return output_frame
+        return processed_frame, pose_data, adjustments
     
     def run(self, camera_id=None, mirror=True):
         """
@@ -127,6 +75,9 @@ class BikeFitAnalyzer:
             return
         
         current_mirror = mirror
+        current_view_mode = "Normal View"
+        show_angles = True
+        show_guidance = True
         
         try:
             while True:
@@ -136,7 +87,20 @@ class BikeFitAnalyzer:
                     break
                 
                 # Process the frame
-                output_frame = self.process_frame(frame, current_mirror)
+                processed_frame, pose_data, adjustments = self.process_frame(
+                    frame, 
+                    current_mirror, 
+                    current_view_mode, 
+                    show_angles, 
+                    show_guidance
+                )
+                
+                # Use the visualizer to create the output
+                output_frame = self.visualizer.visualize_frame(
+                    processed_frame, 
+                    pose_data, 
+                    show_angles=show_angles
+                )
                 
                 # Show the result
                 self.ui_renderer.show_frame(output_frame)
@@ -148,6 +112,19 @@ class BikeFitAnalyzer:
                 elif key == ord('m'):
                     current_mirror = not current_mirror
                     print(f"Mirror mode: {'On' if current_mirror else 'Off'}")
+                elif key == ord('a'):
+                    show_angles = not show_angles
+                    print(f"Show angles: {'On' if show_angles else 'Off'}")
+                elif key == ord('g'):
+                    show_guidance = not show_guidance
+                    print(f"Show guidance: {'On' if show_guidance else 'Off'}")
+                elif key == ord('v'):
+                    # Cycle through view modes
+                    view_modes = ["Normal View", "Skeleton Only", "Angles Only", "Guidance View", "Comparison View"]
+                    current_idx = view_modes.index(current_view_mode)
+                    current_idx = (current_idx + 1) % len(view_modes)
+                    current_view_mode = view_modes[current_idx]
+                    print(f"View mode: {current_view_mode}")
                 elif key == ord('c'):
                     # Clean up current camera
                     cap.release()
@@ -169,4 +146,3 @@ class BikeFitAnalyzer:
             if cap is not None:
                 cap.release()
             self.ui_renderer.cleanup()
-

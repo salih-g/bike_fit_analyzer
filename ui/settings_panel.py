@@ -927,3 +927,12 @@ class SettingsPanel(QWidget):
     def _on_enable_geometry_changed(self, state):
         """Handle enable geometry toggle."""
         settings_manager.set("enable_geometry", state == Qt.Checked)
+        
+    def get_visualization_options(self):
+        """Get the current visualization options."""
+        return {
+            "show_skeleton": self.show_skeleton_check.isChecked(),
+            "show_landmarks": self.show_landmarks_check.isChecked(),
+            "show_angles": self.show_angles_check.isChecked(),
+            "show_guidance": self.show_guidance_check.isChecked()
+    }
