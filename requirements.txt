@@ -1,13 +1,26 @@
 # Core dependencies
 opencv-python>=4.5.0       # For camera access and image processing
-mediapipe>=0.8.10          # For pose detection and tracking
-numpy>=1.20.0              # For numerical computations
+mediapipe>=0.8.10          # For pose detection and tracking with ML
+numpy>=1.20.0              # For numerical computations and angle analysis
+PyQt5>=5.15.0              # For graphical user interface components
 
-# Optional dependencies
-matplotlib>=3.4.0          # For additional visualization options (optional)
-pillow>=8.2.0              # For image handling (optional)
+# Optional visualization and image processing dependencies
+matplotlib>=3.4.0          # For additional visualization options and plotting
+pillow>=8.2.0              # For image handling and processing
+opencv-contrib-python>=4.5.0  # For additional OpenCV modules (optional)
+
+# Video recording and report generation (optional)
+imageio>=2.9.0             # For video recording capability
+reportlab>=3.6.0           # For PDF report generation
+jinja2>=3.0.0              # For HTML report templating
 
 # Development dependencies
-pytest>=6.2.5              # For testing
-pylint>=2.8.3              # For code quality
+pytest>=6.2.5              # For unit and integration testing
+pylint>=2.8.3              # For code quality analysis
 black>=21.5b2              # For code formatting
+mypy>=0.812                # For optional static type checking
+pytest-qt>=3.3.0           # For testing PyQt GUI components
+
+# Packaging and distribution
+setuptools>=53.0.0         # For package setup and installation
+wheel>=0.36.2              # For building wheel distributions
